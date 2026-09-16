@@ -6,11 +6,20 @@ pygame.init()
 
 SIZE = (1200, 900)
 
+RESOLUTION = 10
+
 screen = pygame.display.set_mode(SIZE)
 
 clock = pygame.time.Clock()
 
-running = True
+#Each cell stores its "field value" 
+grid = {}
+
+for y in range(SIZE[1] // RESOLUTION + 1):
+
+    for x in range(SIZE[0] // RESOLUTION + 1):
+
+        grid[(x, y)] = 0.
 
 class field_generator:
 
@@ -42,49 +51,20 @@ POINTS = 20
 points = [field_generator((random.randint(0, SIZE[0]), random.randint(0, SIZE[1])), screen) for p in range(POINTS)]
 
 
+def render_grid(screen, resolution, grid : dict[tuple[int, int], float]):
+
+    for coord in grid.keys():
+
+        # The formula here can be condensed into A + B*cos(2pi*(C*input + D)), where each capital letter is a vec3
+
+        red = 0.485 + 0.29 * math.cos(2*math.pi*(1*grid[coord] + 4.9))
+        
+        green = 0.496 + 0.537 * math.cos(2*math.pi*(1*grid[coord] + 2.8))
+
+        blue = 0.683 + 0.14 * math.cos(2*math.pi*(2*grid[coord] - 0.2))
 
 
-RESOLUTION = 10
-
-scan = {}
-
-for y in range(SIZE[1] // RESOLUTION):
-
-    for x in range(SIZE[0] // RESOLUTION):
-
-        scan[(x, y)] = (255, 255, 255)
-
-
-def render_scan(screen, resolution, scan : dict[tuple[int, int], tuple[int, int, int]]):
-
-    for coord in scan.keys():
-
-        pygame.draw.aacircle(screen, scan[coord], (resolution * coord[0], resolution * coord[1]), resolution//2 - 1)
-
-        #pygame.draw.rect(screen, scan[coord], (resolution * coord[0], resolution * coord[1], resolution, resolution))
-
-
-def calculate_scan(resolution, scan, points : list[field_generator]):
-
-    for coord in scan.keys():
-
-        field_value = 0
-    
-        for p in points:
-
-            field_value += p.return_value((coord[0] * resolution, coord[1] * resolution))
-
-        field_value /= 1
-
-        #if field_value > 1:
-
-        #    field_value = 0.1
-
-        red = 0.485 + 0.29 * math.cos(2*math.pi*(1*field_value + 4.9))
-
-        green = 0.496 + 0.537 * math.cos(2*math.pi*(1*field_value + 2.8))
-
-        blue = 0.683 + 0.14 * math.cos(2*math.pi*(2*field_value - 0.2))
+        #Clamping the channels to prevent rendering issues
 
         red = min(255 * max(0, red), 255)
 
@@ -92,13 +72,33 @@ def calculate_scan(resolution, scan, points : list[field_generator]):
 
         blue = min(255 * max(0, blue), 255)
 
-        scan[coord] = (red, green, blue)
+
+        #Here are 2 rendering styles, upper is circles, the lower is squares. Feel free to comment and uncomment either!
+
+        pygame.draw.aacircle(screen, (red, green, blue), (resolution * coord[0], resolution * coord[1]), resolution//2 - 1)
+
+        #pygame.draw.rect(screen, (red, green, blue), (resolution * coord[0], resolution * coord[1], resolution, resolution))
+
+
+def calculate_grid(resolution, grid, points : list[field_generator]):
+
+    for coord in grid.keys():
+
+        field_value = 0
+    
+        for p in points:
+
+            field_value += p.return_value((coord[0] * resolution, coord[1] * resolution))
+
+        grid[coord] = field_value
 
 
 
-calculate_scan(RESOLUTION, scan, points)
+calculate_grid(RESOLUTION, grid, points)
 
 time = 0
+
+running = True
 
 while running:
 
@@ -112,11 +112,11 @@ while running:
 
             running = False
 
-    calculate_scan(RESOLUTION, scan, points)
+    calculate_grid(RESOLUTION, grid, points)
 
     screen.fill((40,40,40))
 
-    render_scan(screen, RESOLUTION, scan)
+    render_grid(screen, RESOLUTION, grid)
 
     for p in points:
 
