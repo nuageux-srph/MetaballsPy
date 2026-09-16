@@ -24,7 +24,9 @@ for y in range(SIZE[1] // RESOLUTION + 1):
 
         grid[(x, y)] = 0.
 
-#This is a helper class 
+#This is a class that represents the "field sources", its main method is "return_value", 
+#which calculates the inverse squared distance for each passed coordinate
+
 class field_generator:
 
     def __init__(self, coords, screen):
@@ -47,7 +49,7 @@ class field_generator:
 
         self.coords = (self.original_coords[0] + 100 * math.sin(self.original_coords[0] + time), self.original_coords[1] + 100 * math.cos(self.original_coords[1] + time))
 
-    #This is the actual Metaballs calculation. 
+    #This is the actual Metaballs calculation. Choose either metric.
     def return_value(self, position):
 
         #Euclidian distance (default)
