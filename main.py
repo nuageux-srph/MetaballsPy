@@ -4,15 +4,18 @@ import math
 
 pygame.init()
 
+#Size of the window
 SIZE = (1200, 900)
 
-RESOLUTION = 10
+#Size of the "pixels" for rendering. I recommend starting with 20, feel free to decrease the size if your computer allows for it
+#or increase the number if the framerate is too low.
+RESOLUTION = 20
 
 screen = pygame.display.set_mode(SIZE)
 
 clock = pygame.time.Clock()
 
-#Each cell stores its "field value" 
+#Each cell stores its "field value" as a float
 grid = {}
 
 for y in range(SIZE[1] // RESOLUTION + 1):
@@ -21,6 +24,7 @@ for y in range(SIZE[1] // RESOLUTION + 1):
 
         grid[(x, y)] = 0.
 
+#This is a helper class 
 class field_generator:
 
     def __init__(self, coords, screen):
@@ -33,20 +37,31 @@ class field_generator:
 
         self.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
+    #Optional (if you need to see the centers)
     def render(self):
 
         pygame.draw.aacircle(screen, self.color, self.coords, 4)
 
+    #This one is for animation, feel free to toggle as you see fit
     def update_position(self, time):
 
         self.coords = (self.original_coords[0] + 100 * math.sin(self.original_coords[0] + time), self.original_coords[1] + 100 * math.cos(self.original_coords[1] + time))
 
+    #This is the actual Metaballs calculation. 
     def return_value(self, position):
+
+        #Euclidian distance (default)
 
         return 2000 / (((position[0] - self.coords[0])**2) + ((position[1] - self.coords[1])**2) + 1)
 
+        #Manhattan distance (quite a cool topic, I suggest to look it up! It allows for MULTIPLE "shortest paths",
+        #compared to a single straight line in Euclidian space. Oh, and the "manhattan" circle is a square btw, haha)
 
-POINTS = 20
+        #return 50 / (abs(position[0] - self.coords[0]) + abs(position[1] - self.coords[1]) + 1)
+
+
+#The amount of "field sources" you want. The higher the number, the more computation per pixel per frame it needs. Don't overdo!
+POINTS = 15
 
 points = [field_generator((random.randint(0, SIZE[0]), random.randint(0, SIZE[1])), screen) for p in range(POINTS)]
 
